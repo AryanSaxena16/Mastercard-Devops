@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Mastercard-DevOps
 
 
@@ -91,3 +92,12 @@ For open source projects, say how it is licensed.
 
 ## Project status
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+=======
+# DevOps Git Lab
+
+This project is used to learn Git, GitLab and enterprise branching strategies.
+
+## Project
+
+A simple Java application used for Git hands-on practice.
+>>>>>>> 5f734ce (Initial Project Setup)
