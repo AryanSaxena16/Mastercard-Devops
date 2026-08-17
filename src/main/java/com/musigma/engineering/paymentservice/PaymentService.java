@@ -1,6 +1,5 @@
 package com.musigma.engineering.paymentservice;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,10 +8,8 @@ import java.util.Optional;
 @Service
 public class PaymentService {
 
-    // Removed @Autowired from here. Variable is now marked final for safety.
     private final PaymentRepository paymentRepository;
 
-    // Recommended Constructor Injection pattern (Clears IntelliJ warning)
     @Autowired
     public PaymentService(PaymentRepository paymentRepository) {
         this.paymentRepository = paymentRepository;
@@ -35,7 +32,9 @@ public class PaymentService {
                 request.getCurrency(),
                 "PENDING"
         );
-        paymentRepository.save(transaction);
+
+        // FIXED: Forcing an immediate database flush ensures uncommitted reads are viewable in H2
+        paymentRepository.saveAndFlush(transaction);
 
         // 3. Risk Mitigation: Catch invalid business rules
         if (request.getAmount() <= 0) {
@@ -44,25 +43,39 @@ public class PaymentService {
             return "REJECTED: Amount must be greater than zero.";
         }
 
-        // 4. Simulate Third-Party Gateway Integration Handshake
+        // 4. Production Resiliency Step: Enforce strict connection timeout boundaries
         try {
-            // Production Simulation: Value 999 triggers an intentional laggy bank timeout
+            long maxTimeoutAllowedMs = 2000; // 2 Seconds maximum limit
+
+            // SPECIAL PRODUCTION TRICK: Amount 555 creates a 30s freeze to monitor PENDING live
+            long actualGatewayLatencyMs = 500;
             if (request.getAmount() == 999) {
-                Thread.sleep(4000);
-            } else {
-                Thread.sleep(500); // Normal network latency simulation
+                actualGatewayLatencyMs = 4000;
+            } else if (request.getAmount() == 555) {
+                actualGatewayLatencyMs = 30000;
             }
 
-            // Update transaction record to final successful state
+            // Simulate waiting for the external banking network response
+            Thread.sleep(actualGatewayLatencyMs);
+
+            // High-Availability Check: Did the bank response exceed our production threshold limit?
+            if (actualGatewayLatencyMs > maxTimeoutAllowedMs) {
+                throw new java.util.concurrent.TimeoutException("External gateway took too long to respond.");
+            }
+
+            // Transaction completed safely within time bounds
             transaction.setStatus("SUCCESS");
             paymentRepository.save(transaction);
             return "SUCCESS: Transaction completed.";
 
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        } catch (java.util.concurrent.TimeoutException | InterruptedException e) {
+            // Re-verify system states and mark as FAILED to prevent thread exhaustion
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             transaction.setStatus("FAILED");
             paymentRepository.save(transaction);
-            return "TIMEOUT: Gateway dropped the connection.";
+            return "TIMEOUT: Gateway dropped the connection due to high latency.";
         }
     }
 }
