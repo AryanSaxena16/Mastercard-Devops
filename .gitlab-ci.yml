@@ -1,0 +1,26 @@
+# Use an official, free Docker image containing Java 17 and Maven pre-installed
+image: maven:3.9.6-eclipse-temurin-17
+
+# Explicitly define our pipeline stage sequencing paths
+stages:
+  - build
+  - test
+
+# Define the compilation job rules
+build_job:
+  stage: build
+  script:
+    - echo "Beginning unprivileged enterprise source compilation..."
+    - chmod +x mvnw
+    - ./mvnw compile
+  artifacts:
+    paths:
+      - target/
+
+# Define the automated execution test parameters
+test_job:
+  stage: test
+  script:
+    - echo "Executing Mockito & JUnit regression validation trees..."
+    - chmod +x mvnw
+    - ./mvnw test
