@@ -1,37 +1,30 @@
 package com.musigma.engineering.paymentservice;
 
-// Suppress warnings because Spring Boot maps these setters automatically via JSON reflection
 @SuppressWarnings("unused")
 public class PaymentRequest {
     private String idempotencyKey;
     private double amount;
-    private String currency;
+    private String currency; // Supports INR, USD, JPY, RUB, etc.
 
-    // Default constructor for Spring Boot to process JSON
+    // Automation Testing Parameters
+    private long simulateDelayMs;
+    private boolean simulateFailure;
+
     public PaymentRequest() {}
 
     // Getters and Setters
-    public String getIdempotencyKey() {
-        return idempotencyKey;
-    }
+    public String getIdempotencyKey() { return idempotencyKey; }
+    public void setIdempotencyKey(String idempotencyKey) { this.idempotencyKey = idempotencyKey; }
 
-    public void setIdempotencyKey(String idempotencyKey) {
-        this.idempotencyKey = idempotencyKey;
-    }
+    public double getAmount() { return amount; }
+    public void setAmount(double amount) { this.amount = amount; }
 
-    public double getAmount() {
-        return amount;
-    }
+    public String getCurrency() { return currency; }
+    public void setCurrency(String currency) { this.currency = currency; }
 
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
+    public long getSimulateDelayMs() { return simulateDelayMs; }
+    public void setSimulateDelayMs(long simulateDelayMs) { this.simulateDelayMs = simulateDelayMs; }
 
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
+    public boolean isSimulateFailure() { return simulateFailure; }
+    public void setSimulateFailure(boolean simulateFailure) { this.simulateFailure = simulateFailure; }
 }
